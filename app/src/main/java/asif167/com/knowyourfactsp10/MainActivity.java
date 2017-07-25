@@ -17,11 +17,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.crazyhitty.chdev.ks.rssmanager.RSS;
+import com.crazyhitty.chdev.ks.rssmanager.RssReader;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RssReader.RssCallback {
 
     ArrayList<Fragment> al;
     MyFragmentPagerAdapter adapter;
@@ -46,9 +51,6 @@ public class MainActivity extends AppCompatActivity {
                 prefEdit.putString("pageNo", String.valueOf(previousPage));
                 Log.d("pageNo",String.valueOf(previousPage));
                 prefEdit.commit();
-
-
-
             }
         });
 
@@ -58,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         al.add(new frag1());
         al.add(new frag2());
         al.add(new frag3());
+
 
         adapter = new MyFragmentPagerAdapter(fm, al);
 
@@ -85,10 +88,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String pageNo = prefs.getString("pageNo","0");
-
         vPager.setCurrentItem(Integer.parseInt(pageNo), true);
-
-
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -116,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
                 vPager.setCurrentItem(previousPage, true);
             }
         }else{
-
             Random rand = new Random();
             int index = rand.nextInt(3);
             vPager.setCurrentItem(index, true);
@@ -124,4 +123,28 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    private RssReader rssReader = new RssReader(this);
+
+    //load feeds
+    private void loadFeeds(String[] urls) {
+        rssReader.loadFeeds(urls);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        rssReader.destroy();
+    }
+
+    @Override
+    public void rssFeedsLoaded(List<RSS> rssList) {
+        // Feeds loaded, do whatever you want to do with them.
+    }
+
+    @Override
+    public void unableToReadRssFeeds(String errorMessage) {
+        // Oops, library was unable to parse your feed url.
+    }
+
 }
